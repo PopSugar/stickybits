@@ -215,13 +215,19 @@ Stickybits.prototype.computeScrollOffsets = function computeScrollOffsets(item) 
   var parent = it.parent;
   var isCustom = !this.isWin && p.positionVal === 'fixed';
   var isBottom = p.verticalPosition !== 'bottom';
-  var scrollElOffset = isCustom ? p.scrollEl.getBoundingClientRect().top : 0;
-  var stickyStart = isCustom ? el.getBoundingClientRect().top + el.getBoundingClientRect().top - scrollElOffset : el.getBoundingClientRect().top;
+
+  var getOffsetFromBody = function getOffsetFromBody(elm) {
+    return elm.getBoundingClientRect().top - document.body.getBoundingClientRect().top;
+  };
+
+  var scrollElOffset = isCustom ? getOffsetFromBody(p.scrollEl) : 0;
+  var stickyStart = isCustom ? getOffsetFromBody(parent) - scrollElOffset : getOffsetFromBody(parent);
+  var itemParentPositionOffset = getOffsetFromBody(it.el) - getOffsetFromBody(parent);
   var stickyChangeOffset = p.customStickyChangeNumber !== null ? p.customStickyChangeNumber : el.offsetHeight;
   it.offset = scrollElOffset + p.stickyBitStickyOffset;
-  it.stickyStart = isBottom ? stickyStart - it.offset : 0;
+  it.stickyStart = isBottom ? stickyStart + itemParentPositionOffset - it.offset : 0;
   it.stickyChange = it.stickyStart + stickyChangeOffset;
-  it.stickyStop = isBottom ? stickyStart + parent.offsetHeight - (it.el.offsetHeight + it.offset) : stickyStart + parent.offsetHeight;
+  it.stickyStop = isBottom ? stickyStart + parent.offsetHeight - (it.el.offsetHeight + itemParentPositionOffset + it.offset) : stickyStart + parent.offsetHeight;
   return it;
 };
 /*
